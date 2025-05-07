@@ -1,22 +1,35 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Async thunk for fetching posts
+export interface Post {
+  userId: number;
+  id: number;
+  title: string;
+  body: string;
+}
+
+interface PostState {
+  posts: Post[];
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: PostState = {
+  posts: [],
+  loading: false,
+  error: null,
+};
+
 export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
-  const response = await axios.get(
+  const response = await axios.get<Post[]>(
     "https://jsonplaceholder.typicode.com/posts"
   );
   return response.data;
 });
 
-// Slice definition
 const postSlice = createSlice({
   name: "posts",
-  initialState: {
-    posts: [],
-    loading: false,
-    error: null as string | null,
-  },
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -27,15 +40,13 @@ const postSlice = createSlice({
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.loading = false;
         state.posts = action.payload;
-        state.error = null;
       })
       .addCase(fetchPosts.rejected, (state, action) => {
         state.loading = false;
-        state.posts = [];
         state.error = action.error.message || "Something went wrong";
+        state.posts = [];
       });
   },
 });
 
-// Export the reducer
 export default postSlice.reducer;
